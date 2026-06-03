@@ -16,6 +16,6 @@ public class HelloServlet extends HttpServlet {
 
         response.setContentType("text/html");
 
-        response.getWriter().println("<h1>Java 21 + Tomcat 10 Working 🚀</h1>");
+        response.getWriter().println("<h1>Java Maven Jenkins Pipeline testing</h1>");
     }
 }
