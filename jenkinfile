@@ -1,0 +1,61 @@
+pipeline {
+    agent any
+
+    environment {
+        TOMCAT_HOST = "172.31.0.64"
+        TOMCAT_USER = "ubuntu"
+        PEM_FILE = "/var/lib/jenkins/.ssh/tarun.pem"
+    }
+
+    stages {
+
+        stage('Build') {
+            steps {
+                sh '''
+                java --version
+                mvn --version
+                mvn clean package
+                '''
+            }
+        }
+
+        stage('Verify Artifact') {
+            steps {
+                sh '''
+                ls -ltr target/
+                '''
+            }
+        }
+
+        stage('Deploy WAR') {
+            steps {
+                sh '''
+                scp -o StrictHostKeyChecking=no \
+                -i ${PEM_FILE} \
+                target/java21-tomcat10-demo-1.0.0.war \
+                ${TOMCAT_USER}@${TOMCAT_HOST}:/opt/tomcat/webapps/
+                '''
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                sh '''
+                ssh -o StrictHostKeyChecking=no \
+                -i ${PEM_FILE} \
+                ${TOMCAT_USER}@${TOMCAT_HOST} \
+                "ls -ltr /opt/tomcat/webapps | grep java21"
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'WAR deployed successfully'
+        }
+
+        failure {
+            echo 'Deployment Failed'
+        }
+    }
